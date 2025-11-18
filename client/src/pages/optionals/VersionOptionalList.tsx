@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, RefreshCw } from "lucide-react";
+import { Trash2, RefreshCw, Pencil } from "lucide-react";
 import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Brand, Model, Version } from "@/lib/types";
@@ -26,6 +26,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { formatBRCurrency } from "@/lib/formatters";
 
 interface VersionOptional {
@@ -63,6 +73,8 @@ export default function VersionOptionalList() {
   const [selectedVersionId, setSelectedVersionId] = useState<string>("all");
   
   const [filteredVersionOptionals, setFilteredVersionOptionals] = useState<VersionOptional[]>([]);
+  const [editingItem, setEditingItem] = useState<VersionOptional | null>(null);
+  const [editPrice, setEditPrice] = useState<string>("");
 
   const { data: brands = [] } = useQuery<Brand[]>({
     queryKey: ["/api/brands"],
@@ -156,6 +168,54 @@ export default function VersionOptionalList() {
       title: "Lista atualizada",
       description: "A lista de associações foi atualizada.",
     });
+  };
+
+  const handleEdit = (item: VersionOptional) => {
+    setEditingItem(item);
+    setEditPrice(item.price.toString());
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingItem) return;
+
+    try {
+      const priceValue = parseFloat(editPrice);
+      if (isNaN(priceValue) || priceValue < 0) {
+        toast({
+          title: "Erro",
+          description: "Digite um preço válido.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const payload = {
+        versionId: editingItem.versionId,
+        optionalId: editingItem.optionalId,
+        price: priceValue.toString()
+      };
+      
+      console.log("Enviando PATCH:", payload);
+
+      await apiRequest("PATCH", `/api/version-optionals/${editingItem.id}`, payload);
+
+      queryClient.invalidateQueries({ queryKey: ["/api/version-optionals"] });
+      
+      toast({
+        title: "Preço atualizado",
+        description: "O preço do opcional foi atualizado com sucesso.",
+      });
+
+      setEditingItem(null);
+      setEditPrice("");
+    } catch (error) {
+      console.error("Erro ao atualizar preço:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao atualizar o preço.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -266,29 +326,38 @@ export default function VersionOptionalList() {
                   <TableCell>{item.optional.name}</TableCell>
                   <TableCell>{formatBRCurrency(item.price)}</TableCell>
                   <TableCell>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja remover a associação entre o opcional 
-                            "{item.optional.name}" e a versão "{item.version.name}"?
-                            Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(item.id)}>
-                            Excluir
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEdit(item)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja remover a associação entre o opcional 
+                              "{item.optional.name}" e a versão "{item.version.name}"?
+                              Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(item.id)}>
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -296,6 +365,44 @@ export default function VersionOptionalList() {
           </Table>
         )}
       </CardContent>
+
+      <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Preço do Opcional</DialogTitle>
+            <DialogDescription>
+              {editingItem && (
+                <>
+                  Editando o preço de <strong>{editingItem.optional.name}</strong> para a versão{" "}
+                  <strong>{editingItem.version.name}</strong>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="price">Preço (R$)</Label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={editPrice}
+                onChange={(e) => setEditPrice(e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingItem(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveEdit}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

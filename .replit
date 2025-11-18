@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["lsb-release", "jq"]
+packages = ["lsb-release", "jq", "nano"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -14,6 +14,10 @@ build = ["npm", "run", "build"]
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 34619
+externalPort = 4200
 
 [[ports]]
 localPort = 37405
