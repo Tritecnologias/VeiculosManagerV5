@@ -189,15 +189,11 @@ export default function VersionOptionalList() {
         return;
       }
 
-      const payload = {
+      await apiRequest("PATCH", `/api/version-optionals/${editingItem.id}`, {
         versionId: editingItem.versionId,
         optionalId: editingItem.optionalId,
         price: priceValue.toString()
-      };
-      
-      console.log("Enviando PATCH:", payload);
-
-      await apiRequest("PATCH", `/api/version-optionals/${editingItem.id}`, payload);
+      });
 
       queryClient.invalidateQueries({ queryKey: ["/api/version-optionals"] });
       

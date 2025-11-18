@@ -1108,7 +1108,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch(`${apiPrefix}/version-optionals/:id`, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      console.log("PATCH version-optional:", id, "Body:", JSON.stringify(req.body));
       const validatedData = versionOptionalInsertSchema.parse(req.body);
       
       const updatedVersionOptional = await storage.updateVersionOptional(id, validatedData);
@@ -1120,7 +1119,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedVersionOptional);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Zod validation error:", JSON.stringify(error.errors, null, 2));
         return res.status(400).json({ errors: error.errors });
       }
       console.error("Error updating version optional:", error);

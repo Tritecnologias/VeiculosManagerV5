@@ -126,6 +126,7 @@ Changelog:
 - October 28, 2025. Implemented smart version sorting: descending by year (2026→2025), with versions without year appearing last
 - November 03, 2025. Updated vehicle list to show all vehicles (including inactive) when "Todos os Status" filter is selected
 - November 03, 2025. Implemented filtering to hide versions with only inactive vehicles from /versions list and /vehicles/new dropdown
+- November 18, 2025. Added price editing functionality for version-optionals in "Opcionais Associados" tab with inline edit button and dialog
 ```
 
 ## User Preferences
