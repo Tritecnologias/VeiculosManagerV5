@@ -826,7 +826,7 @@ export default function Configurator2() {
               <Select 
                 value={selectedDirectSaleId} 
                 onValueChange={handleDirectSaleChange}
-                disabled={!selectedVersionId || (selectedPriceType !== null && selectedPriceType !== 'public')}
+                disabled={!selectedVersionId || availableDirectSales.length === 0}
               >
                 <SelectTrigger className="w-full border-2 border-gray-300 rounded-md">
                   <span className="mx-auto">
