@@ -15,22 +15,6 @@ build = ["npm", "run", "build"]
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 34619
-externalPort = 4200
-
-[[ports]]
-localPort = 37405
-externalPort = 3003
-
-[[ports]]
-localPort = 42167
-externalPort = 3002
-
-[[ports]]
-localPort = 43133
-externalPort = 3001
-
 [workflows]
 runButton = "Project"
 
@@ -53,4 +37,4 @@ args = "npm run dev"
 waitForPort = 5000
 
 [agent]
-integrations = ["javascript_websocket==1.0.0"]
+integrations = ["javascript_websocket:1.0.0"]
