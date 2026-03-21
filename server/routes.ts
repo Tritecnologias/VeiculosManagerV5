@@ -1963,7 +1963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // FCM Token API — registrar/atualizar token de dispositivo do usuário logado
-  app.post(`${apiPrefix}/fcm-tokens`, isAuthenticated, async (req, res) => {
+  app.post(`${apiPrefix}/fcm-tokens`, isAuthenticated, sensitiveApiLimiter, async (req, res) => {
     try {
       const { token, platform } = req.body;
       if (!token || typeof token !== 'string' || token.length < 20 || token.length > 4096) {
