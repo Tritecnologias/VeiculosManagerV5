@@ -1966,8 +1966,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(`${apiPrefix}/fcm-tokens`, isAuthenticated, async (req, res) => {
     try {
       const { token, platform } = req.body;
-      if (!token || typeof token !== 'string') {
-        return res.status(400).json({ message: 'Token FCM é obrigatório' });
+      if (!token || typeof token !== 'string' || token.length < 20 || token.length > 4096) {
+        return res.status(400).json({ message: 'Token FCM inválido ou ausente' });
       }
       const platformValue = (platform as string) || 'android';
       if (!['android', 'ios', 'web'].includes(platformValue)) {

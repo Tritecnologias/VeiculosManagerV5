@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useAuth } from './use-auth';
 
-async function initPushNotifications() {
+async function registerPushToken() {
   if (!Capacitor.isNativePlatform()) return;
 
   try {
@@ -13,6 +13,9 @@ async function initPushNotifications() {
       console.log('[FCM] Push notification permission denied');
       return;
     }
+
+    // Remove any previously registered listeners to avoid duplicates on re-registration
+    await PushNotifications.removeAllListeners();
 
     // Register all listeners BEFORE calling register() to avoid missing the initial token event
     await PushNotifications.addListener('registration', async (token) => {
@@ -56,15 +59,32 @@ async function initPushNotifications() {
   }
 }
 
+async function cleanupPushListeners() {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    const { PushNotifications } = await import('@capacitor/push-notifications');
+    await PushNotifications.removeAllListeners();
+  } catch (err) {
+    console.error('[FCM] Error cleaning up push listeners:', err);
+  }
+}
+
 export function usePushNotifications() {
   const { user } = useAuth();
-  const initialized = useRef(false);
+  const activeUserId = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!user || initialized.current) return;
+    if (!user) return;
     if (!Capacitor.isNativePlatform()) return;
 
-    initialized.current = true;
-    initPushNotifications();
-  }, [user]);
+    // Re-register when the authenticated user changes (multi-account support)
+    if (activeUserId.current === user.id) return;
+
+    activeUserId.current = user.id;
+    registerPushToken();
+
+    return () => {
+      cleanupPushListeners();
+    };
+  }, [user?.id]);
 }
