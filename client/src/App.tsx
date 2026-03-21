@@ -6,6 +6,7 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useHeartbeat } from "@/hooks/use-heartbeat";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { Loader2 } from "lucide-react";
 
 // Importar todas as páginas necessárias
@@ -76,6 +77,9 @@ function AppContent() {
   
   // Ativar heartbeat para usuários logados
   useHeartbeat();
+
+  // Inicializar push notifications em dispositivos mobile
+  usePushNotifications();
 
   if (isLoading) {
     return (

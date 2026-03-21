@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { db } from "@db";
 import { eq } from "drizzle-orm";
-import { versionColors } from "@shared/schema";
+import { versionColors, deviceTokens } from "@shared/schema";
+import { sendPushNotification, getAdminTokens } from "./services/fcmService";
 import { 
   setupAuth, 
   isAuthenticated, 
@@ -728,6 +729,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const newVehicle = await storage.createVehicle(validatedData);
       res.status(201).json(newVehicle);
+
+      // Enviar notificação push para administradores (sem bloquear a resposta)
+      getAdminTokens().then((tokens) => {
+        if (tokens.length > 0) {
+          sendPushNotification(
+            tokens,
+            'Novo Veículo Cadastrado',
+            `Um novo veículo foi adicionado ao sistema.`,
+            { vehicleId: String(newVehicle.id), type: 'new_vehicle' }
+          );
+        }
+      }).catch((err) => {
+        console.error('[FCM] Error sending vehicle notification:', err);
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         console.error("Erro de validação Zod:", JSON.stringify(error.errors, null, 2));
@@ -1944,6 +1959,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao restaurar backup:", error);
       res.status(500).json({ message: "Erro ao restaurar backup" });
+    }
+  });
+
+  // FCM Token API — registrar/atualizar token de dispositivo do usuário logado
+  app.post(`${apiPrefix}/fcm-tokens`, isAuthenticated, async (req, res) => {
+    try {
+      const { token, platform } = req.body;
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: 'Token FCM é obrigatório' });
+      }
+      const platformValue = (platform as string) || 'android';
+      if (!['android', 'ios', 'web'].includes(platformValue)) {
+        return res.status(400).json({ message: "Plataforma inválida. Use 'android', 'ios' ou 'web'" });
+      }
+
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      // Upsert: atualizar token existente ou inserir novo
+      const existing = await db.query.deviceTokens.findFirst({
+        where: eq(deviceTokens.token, token),
+      });
+
+      if (existing) {
+        await db.update(deviceTokens)
+          .set({ userId, platform: platformValue as 'android' | 'ios' | 'web', updatedAt: new Date() })
+          .where(eq(deviceTokens.token, token));
+      } else {
+        await db.insert(deviceTokens).values({
+          userId,
+          token,
+          platform: platformValue as 'android' | 'ios' | 'web',
+        });
+      }
+
+      res.status(201).json({ message: 'Token FCM registrado com sucesso' });
+    } catch (error) {
+      console.error('[FCM] Error saving FCM token:', error);
+      res.status(500).json({ message: 'Erro ao salvar token FCM' });
+    }
+  });
+
+  app.delete(`${apiPrefix}/fcm-tokens`, isAuthenticated, async (req, res) => {
+    try {
+      const { token } = req.body;
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: 'Token FCM é obrigatório' });
+      }
+
+      await db.delete(deviceTokens).where(eq(deviceTokens.token, token));
+      res.status(204).end();
+    } catch (error) {
+      console.error('[FCM] Error removing FCM token:', error);
+      res.status(500).json({ message: 'Erro ao remover token FCM' });
     }
   });
 

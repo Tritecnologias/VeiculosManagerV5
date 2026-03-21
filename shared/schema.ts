@@ -357,6 +357,25 @@ export type CustomPermissionsInsert = z.infer<typeof customPermissionsInsertSche
 export const customPermissionsSelectSchema = createSelectSchema(customPermissions);
 export type CustomPermissions = z.infer<typeof customPermissionsSelectSchema>;
 
+// Tabela para tokens FCM de dispositivos mobile
+export const deviceTokens = pgTable("device_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  token: text("token").notNull().unique(),
+  platform: text("platform").notNull().$type<'android' | 'ios' | 'web'>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
+export const deviceTokensRelations = relations(deviceTokens, ({ one }) => ({
+  user: one(users, { fields: [deviceTokens.userId], references: [users.id] }),
+}));
+
+export const deviceTokenInsertSchema = createInsertSchema(deviceTokens);
+export type DeviceTokenInsert = z.infer<typeof deviceTokenInsertSchema>;
+export const deviceTokenSelectSchema = createSelectSchema(deviceTokens);
+export type DeviceToken = z.infer<typeof deviceTokenSelectSchema>;
+
 // Tabela para gerenciamento de backups
 export const backups = pgTable("backups", {
   id: serial("id").primaryKey(),

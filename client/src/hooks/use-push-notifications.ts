@@ -1,0 +1,68 @@
+import { useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { useAuth } from './use-auth';
+
+async function initPushNotifications(userId: number) {
+  if (!Capacitor.isNativePlatform()) return;
+
+  try {
+    const { PushNotifications } = await import('@capacitor/push-notifications');
+
+    const permResult = await PushNotifications.requestPermissions();
+    if (permResult.receive !== 'granted') {
+      console.log('[FCM] Push notification permission denied');
+      return;
+    }
+
+    await PushNotifications.register();
+
+    await PushNotifications.addListener('registration', async (token) => {
+      console.log('[FCM] Received registration token');
+      try {
+        const platform = Capacitor.getPlatform() as 'android' | 'ios';
+        const apiBase = import.meta.env.VITE_API_URL ?? '';
+        const response = await fetch(`${apiBase}/api/fcm-tokens`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ token: token.value, platform }),
+        });
+        if (!response.ok) {
+          const body = await response.text();
+          console.error('[FCM] Failed to register token:', body);
+        } else {
+          console.log('[FCM] Token registered successfully');
+        }
+      } catch (err) {
+        console.error('[FCM] Error sending token to backend:', err);
+      }
+    });
+
+    await PushNotifications.addListener('registrationError', (err) => {
+      console.error('[FCM] Registration error:', err.error);
+    });
+
+    await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      console.log('[FCM] Notification received in foreground:', notification.title);
+    });
+
+    await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+      console.log('[FCM] Notification action:', action.actionId);
+    });
+  } catch (err) {
+    console.error('[FCM] Error initializing push notifications:', err);
+  }
+}
+
+export function usePushNotifications() {
+  const { user } = useAuth();
+  const initialized = useRef(false);
+
+  useEffect(() => {
+    if (!user || initialized.current) return;
+    if (!Capacitor.isNativePlatform()) return;
+
+    initialized.current = true;
+    initPushNotifications(user.id);
+  }, [user]);
+}
