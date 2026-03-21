@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { db } from "@db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { versionColors, deviceTokens } from "@shared/schema";
 import { sendPushNotification, getAdminTokens } from "./services/fcmService";
 import { 
@@ -1974,10 +1974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Plataforma inválida. Use 'android', 'ios' ou 'web'" });
       }
 
-      const userId = (req.user as any)?.id;
-      if (!userId) {
-        return res.status(401).json({ message: 'Usuário não autenticado' });
-      }
+      const userId = req.user!.id;
 
       // Upsert: atualizar token existente ou inserir novo
       const existing = await db.query.deviceTokens.findFirst({
@@ -2010,7 +2007,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Token FCM é obrigatório' });
       }
 
-      await db.delete(deviceTokens).where(eq(deviceTokens.token, token));
+      const userId = req.user!.id;
+
+      // Scoped to the authenticated user to prevent cross-user token revocation
+      await db.delete(deviceTokens).where(
+        and(eq(deviceTokens.token, token), eq(deviceTokens.userId, userId))
+      );
       res.status(204).end();
     } catch (error) {
       console.error('[FCM] Error removing FCM token:', error);

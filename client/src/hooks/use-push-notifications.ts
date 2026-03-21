@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useAuth } from './use-auth';
 
-async function initPushNotifications(userId: number) {
+async function initPushNotifications() {
   if (!Capacitor.isNativePlatform()) return;
 
   try {
@@ -14,8 +14,7 @@ async function initPushNotifications(userId: number) {
       return;
     }
 
-    await PushNotifications.register();
-
+    // Register all listeners BEFORE calling register() to avoid missing the initial token event
     await PushNotifications.addListener('registration', async (token) => {
       console.log('[FCM] Received registration token');
       try {
@@ -49,6 +48,9 @@ async function initPushNotifications(userId: number) {
     await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
       console.log('[FCM] Notification action:', action.actionId);
     });
+
+    // Call register() only after listeners are in place
+    await PushNotifications.register();
   } catch (err) {
     console.error('[FCM] Error initializing push notifications:', err);
   }
@@ -63,6 +65,6 @@ export function usePushNotifications() {
     if (!Capacitor.isNativePlatform()) return;
 
     initialized.current = true;
-    initPushNotifications(user.id);
+    initPushNotifications();
   }, [user]);
 }
