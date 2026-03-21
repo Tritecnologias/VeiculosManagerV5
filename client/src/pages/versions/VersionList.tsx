@@ -113,6 +113,7 @@ export default function VersionList() {
               <p className="text-gray-500">Nenhuma versão encontrada</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -164,6 +165,7 @@ export default function VersionList() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

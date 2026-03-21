@@ -132,6 +132,7 @@ export default function BrandList() {
               <p className="text-gray-500">Nenhuma marca encontrada</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -179,6 +180,7 @@ export default function BrandList() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

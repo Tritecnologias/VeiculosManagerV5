@@ -71,6 +71,7 @@ export default function OptionalList({ onEdit }: OptionalListProps) {
               <p className="text-gray-500">Nenhum opcional encontrado</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -128,6 +129,7 @@ export default function OptionalList({ onEdit }: OptionalListProps) {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

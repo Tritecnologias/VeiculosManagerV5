@@ -238,6 +238,7 @@ export default function VersionColorList({ onEdit }: VersionColorListProps) {
         {isLoading ? (
           <div>Carregando...</div>
         ) : filteredVersionColors.length > 0 ? (
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -294,6 +295,7 @@ export default function VersionColorList({ onEdit }: VersionColorListProps) {
               ))}
             </TableBody>
           </Table>
+          </div>
         ) : (
           <div className="text-center py-4">
             Nenhuma associação de pintura encontrada.

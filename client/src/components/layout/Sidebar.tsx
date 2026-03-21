@@ -1,9 +1,10 @@
 import { Link, useLocation } from "wouter";
-import { Home, Car, Building, FileText, Palette, Settings, ListPlus, Menu, X, LogOut, User, Users, Shield, ShieldCheck, Loader2, Activity } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Home, Car, Building, FileText, Palette, Settings, ListPlus, X, LogOut, User, Users, Shield, ShieldCheck, Loader2, Activity } from "lucide-react";
+import { useState, useEffect, useContext } from "react";
 import { useMobile } from "@/hooks/use-mobile";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
+import { SidebarContext } from "@/contexts/SidebarContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { hasPermission, getPermissions, getCustomPermissions } from "@/lib/permissions";
@@ -133,7 +134,7 @@ const menuStructure = [
 export default function Sidebar() {
   const [location] = useLocation();
   const isMobile = useMobile();
-  const [open, setOpen] = useState(false);
+  const { isOpen: open, close: closeSidebar } = useContext(SidebarContext);
   const { user } = useAuth();
   const [permissionsLoaded, setPermissionsLoaded] = useState(false);
   const [filteredMenuItems, setFilteredMenuItems] = useState<Array<{path: string, label: string, icon: JSX.Element}>>([]);
@@ -232,32 +233,25 @@ export default function Sidebar() {
 
   if (isMobile) {
     return (
-      <div>
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <button className="p-2 fixed top-16 left-4 z-40 bg-white rounded-md shadow-md">
-              <Menu className="h-6 w-6" />
-            </button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold text-gray-800">Administração</h2>
-                <button onClick={() => setOpen(false)} className="p-1">
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              
-              {/* Perfil do usuário */}
-              {user && <UserProfile />}
-              
-              <nav>
-                <MenuItems />
-              </nav>
+      <Sheet open={open} onOpenChange={(val) => !val && closeSidebar()}>
+        <SheetContent side="left" className="p-0 w-64">
+          <div className="p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">Administração</h2>
+              <button onClick={closeSidebar} className="p-1">
+                <X className="h-5 w-5" />
+              </button>
             </div>
-          </SheetContent>
-        </Sheet>
-      </div>
+            
+            {/* Perfil do usuário */}
+            {user && <UserProfile />}
+            
+            <nav>
+              <MenuItems />
+            </nav>
+          </div>
+        </SheetContent>
+      </Sheet>
     );
   }
 

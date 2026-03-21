@@ -72,6 +72,7 @@ export default function ModelList() {
               <p className="text-gray-500">Nenhum modelo encontrado</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -121,6 +122,7 @@ export default function ModelList() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

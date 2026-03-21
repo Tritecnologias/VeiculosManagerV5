@@ -12,13 +12,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, LogOut, User, FileText } from "lucide-react";
+import { ChevronDown, LogOut, User, FileText, Menu } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/use-auth";
 import { hasPermission } from "@/lib/permissions";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { SidebarContext } from "@/contexts/SidebarContext";
 
 export default function Header() {
   const [location] = useLocation();
@@ -26,6 +27,8 @@ export default function Header() {
   const { user, logoutMutation } = useAuth();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const { toast } = useToast();
+  const { toggle: toggleSidebar } = useContext(SidebarContext);
+  const isRegularUser = user?.role?.name === "Usuário";
   
   // Buscar todas as configurações
   const { data: settings = [] } = useQuery<Array<{key: string, value: string}>>({
@@ -87,7 +90,17 @@ export default function Header() {
   return (
     <header className="bg-white shadow">
       <div className="flex justify-between items-center px-4 py-2">
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
+          {/* Botão hambúrguer para mobile (apenas para não-usuários regulares) */}
+          {isMobile && !isRegularUser && (
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+              aria-label="Abrir menu"
+            >
+              <Menu className="h-6 w-6 text-gray-700" />
+            </button>
+          )}
           <div className="flex items-center">
             {companyLogoUrl ? (
               <img src={companyLogoUrl} alt="Logo" className="h-8 w-auto" />

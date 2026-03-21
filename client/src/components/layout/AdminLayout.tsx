@@ -5,6 +5,7 @@ import { useMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
+import { SidebarProvider } from "@/contexts/SidebarContext";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -49,14 +50,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
   
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <div className="flex flex-1">
-        {!isRegularUser && <Sidebar />}
-        <main className={`flex-1 ${isMobile ? 'p-3' : 'p-6'} overflow-auto`}>
-          {children}
-        </main>
+    <SidebarProvider>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex flex-1">
+          {!isRegularUser && <Sidebar />}
+          <main className={`flex-1 ${isMobile ? 'p-3 pt-4' : 'p-6'} overflow-auto min-w-0`}>
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

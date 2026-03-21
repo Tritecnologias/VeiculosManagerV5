@@ -193,9 +193,9 @@ export default function VehicleList() {
   
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">Veículos</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button 
             onClick={handleExportCSV} 
             variant="outline"
@@ -211,7 +211,7 @@ export default function VehicleList() {
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}
-            {downloadProgress.isDownloading ? 'Exportando...' : 'Exportar Veículos'}
+            {downloadProgress.isDownloading ? 'Exportando...' : 'Exportar'}
           </Button>
           <Link href="/vehicles/new">
             <Button>
@@ -228,7 +228,7 @@ export default function VehicleList() {
           <CardDescription>
             Gerencie os veículos disponíveis
           </CardDescription>
-          <div className="flex mt-4 gap-4">
+          <div className="flex flex-col sm:flex-row mt-4 gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
               <Input
@@ -243,7 +243,7 @@ export default function VehicleList() {
               value={statusFilter}
               onValueChange={setStatusFilter}
             >
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
@@ -265,6 +265,7 @@ export default function VehicleList() {
               <p className="text-gray-500">Nenhum veículo encontrado</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -351,6 +352,7 @@ export default function VehicleList() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -182,7 +182,7 @@ const UserManagement = () => {
         </TabsList>
         
         <TabsContent value="users" className="mt-6">
-          <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="bg-white shadow rounded-lg overflow-x-auto">
             <Table>
           <TableHeader>
             <TableRow>

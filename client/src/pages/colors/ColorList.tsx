@@ -70,6 +70,7 @@ export default function ColorList({ onEdit }: ColorListProps) {
               <p className="text-gray-500">Nenhuma cor encontrada</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -125,6 +126,7 @@ export default function ColorList({ onEdit }: ColorListProps) {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

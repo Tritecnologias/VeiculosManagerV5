@@ -300,6 +300,7 @@ export default function VersionOptionalList() {
             <p className="text-gray-500">Nenhuma associação encontrada</p>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -359,6 +360,7 @@ export default function VersionOptionalList() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
       </CardContent>
 

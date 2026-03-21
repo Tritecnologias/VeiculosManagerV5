@@ -139,6 +139,7 @@ export default function PaintTypeList() {
         {isLoading ? (
           <div>Carregando...</div>
         ) : paintTypes.length > 0 ? (
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -172,6 +173,7 @@ export default function PaintTypeList() {
               ))}
             </TableBody>
           </Table>
+          </div>
         ) : (
           <div className="text-center py-6">
             Nenhum tipo de pintura cadastrado.

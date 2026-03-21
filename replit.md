@@ -127,6 +127,7 @@ Changelog:
 - November 03, 2025. Updated vehicle list to show all vehicles (including inactive) when "Todos os Status" filter is selected
 - November 03, 2025. Implemented filtering to hide versions with only inactive vehicles from /versions list and /vehicles/new dropdown
 - November 18, 2025. Added price editing functionality for version-optionals in "Opcionais Associados" tab with inline edit button and dialog
+- March 21, 2026. Mobile UI adaptation: SidebarContext/SidebarProvider for hamburger menu control, floating button removed, Header hamburger integrated, all table list pages wrapped with overflow-x-auto (BrandList, ModelList, VehicleList, VersionList, OptionalList, ColorList, VersionColorList, VersionOptionalList, DirectSaleList, PaintTypeList, UserManagement), VehicleList filters made responsive (flex-col sm:flex-row), configurator2 already had mobile-first layout
 ```
 
 ## User Preferences

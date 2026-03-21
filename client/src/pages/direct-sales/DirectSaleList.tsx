@@ -145,7 +145,7 @@ export default function DirectSaleList() {
             )}
           </div>
         ) : (
-          <div className="border rounded-md">
+          <div className="overflow-x-auto border rounded-md">
             <table className="w-full">
               <thead>
                 <tr className="bg-muted/50">
