@@ -1,11 +1,54 @@
-node_modules
-dist
+# Dependências
+node_modules/
+
+# Build gerado
+dist/
+
+# Variáveis de ambiente e segredos
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Arquivos internos do Replit
+.replit
+.local/
+.cache/
+.config/
+.agents/
+replit.nix
+
+# Logs
+*.log
+debug.log
+logs/
+
+# Arquivos de sistema operacional
 .DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+Thumbs.db
+desktop.ini
+
+# Backups e arquivos de banco
+backups/
 *.sql
 *.sql.gz
-*.txt
-.env*
+*.tar.gz
+*.dump
+
+# Arquivos temporários
 *.bundle
+*.tmp
+vite.config.ts.*
+server/public
+
+# Imagens de desenvolvimento (não necessárias no repositório)
+screenshot.png
+after-wait.png
+generated-icon.png
+
+# Futuro - Capacitor (Android e iOS)
+android/
+ios/
+
+# Arquivos de lock do git
+*.lock
