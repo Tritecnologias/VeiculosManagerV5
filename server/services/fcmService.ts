@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 import { db } from '@db';
-import { deviceTokens, users, userRoles } from '@shared/schema';
+import { deviceTokens, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 let initialized = false;
