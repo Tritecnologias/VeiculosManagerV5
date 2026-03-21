@@ -1,5 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -7,7 +9,9 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       queryFn: async ({ queryKey }) => {
         if (typeof queryKey[0] === 'string') {
-          const response = await fetch(queryKey[0] as string);
+          const path = queryKey[0] as string;
+          const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
+          const response = await fetch(url, { credentials: 'include' });
           
           if (!response.ok) {
             throw new Error(`Erro ao buscar dados: ${response.statusText}`);
@@ -32,6 +36,8 @@ export async function apiRequest(
     "Content-Type": "application/json",
   };
 
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+
   const options: RequestInit = {
     method,
     headers,
@@ -43,15 +49,14 @@ export async function apiRequest(
   }
 
   try {
-    const response = await fetch(url, options);
+    const response = await fetch(fullUrl, options);
     return response;
   } catch (error) {
-    console.error(`[API Error] ${url}:`, error);
+    console.error(`[API Error] ${fullUrl}:`, error);
     throw error;
   }
 }
 
-// Função auxiliar para obter dados de uma API com suporte para comportamento em 401
 export function getQueryFn({
   on401 = "throw",
   queryKey = [],
@@ -62,10 +67,9 @@ export function getQueryFn({
   params?: Record<string, any>;
 } = {}) {
   return async ({ queryKey: reactQueryKey }: { queryKey: string[] }) => {
-    // Se temos uma override de queryKey, use-a, caso contrário, use a fornecida pelo React Query
-    const baseUrl = queryKey.length > 0 ? queryKey[0] : reactQueryKey[0];
+    const basePath = queryKey.length > 0 ? queryKey[0] : reactQueryKey[0];
+    const baseUrl = basePath.startsWith('http') ? basePath : `${API_BASE_URL}${basePath}`;
     
-    // Construir URL com parâmetros de consulta
     let url = baseUrl;
     if (params && Object.keys(params).length > 0) {
       const searchParams = new URLSearchParams();

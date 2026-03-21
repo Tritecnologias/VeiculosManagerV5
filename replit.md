@@ -104,7 +104,20 @@ This is a comprehensive vehicle management system built as a full-stack web appl
 ### Environment Configuration
 - **Database**: PostgreSQL connection string required in `DATABASE_URL`
 - **Session Security**: Secure session secrets for production
-- **CORS Configuration**: Proper origin validation for production domains
+- **CORS Configuration**: Proper origin validation for production domains, including Capacitor mobile origins
+- **Mobile API URL**: `VITE_API_URL` env variable for pointing mobile app to backend server
+
+### Mobile / Capacitor Build
+- **Capacitor**: Installed for Android and iOS packaging (`@capacitor/core`, `@capacitor/cli`, `@capacitor/android`, `@capacitor/ios`)
+- **Config file**: `capacitor.config.ts` at project root (appId: `br.com.tritecnologias.veiculosmanager`)
+- **Web directory**: `dist/public` (Vite output)
+- **Remote URL mode**: Set `CAPACITOR_SERVER_URL` env var to load web app from remote server instead of bundled files
+- **Native build workflow**:
+  1. Build frontend: `npx vite build`
+  2. Sync to native projects: `npx cap sync`
+  3. Open in Android Studio: `npx cap open android`
+  4. Open in Xcode (Mac): `npx cap open ios`
+- **CORS**: Server allows `capacitor://localhost`, `http://localhost`, `ionic://localhost` origins for mobile sessions
 
 ### Production Considerations
 - **Process Management**: PM2 or similar for Node.js process management
@@ -128,6 +141,7 @@ Changelog:
 - November 03, 2025. Implemented filtering to hide versions with only inactive vehicles from /versions list and /vehicles/new dropdown
 - November 18, 2025. Added price editing functionality for version-optionals in "Opcionais Associados" tab with inline edit button and dialog
 - March 21, 2026. Mobile UI adaptation: SidebarContext/SidebarProvider for hamburger menu control, floating button removed, Header hamburger integrated, all table list pages wrapped with overflow-x-auto (BrandList, ModelList, VehicleList, VersionList, OptionalList, ColorList, VersionColorList, VersionOptionalList, DirectSaleList, PaintTypeList, UserManagement), VehicleList filters made responsive (flex-col sm:flex-row), configurator2 already had mobile-first layout
+- March 21, 2026. Capacitor setup: installed @capacitor/core, @capacitor/cli, @capacitor/android, @capacitor/ios; created capacitor.config.ts (appId: br.com.tritecnologias.veiculosmanager); updated queryClient.ts with VITE_API_URL support; added CORS for Capacitor origins (capacitor://localhost, http://localhost, ionic://localhost); generated android/ and ios/ native project folders via cap add; built frontend and synced via cap sync; created .env.example
 ```
 
 ## User Preferences

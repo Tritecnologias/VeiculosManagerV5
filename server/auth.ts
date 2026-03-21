@@ -304,11 +304,33 @@ export function setupAuth(app: Express) {
 
   app.set("trust proxy", 1);
   
-  // Configurações CORS simplificadas
+  // Origens permitidas para CORS (incluindo Capacitor para apps mobile)
+  const CAPACITOR_ORIGINS = [
+    'capacitor://localhost',
+    'http://localhost',
+    'ionic://localhost',
+    'http://localhost:3000',
+    'http://localhost:8080',
+  ];
+
+  // Configurações CORS com suporte a Capacitor (Android/iOS)
   app.use((req, res, next) => {
+    const origin = req.headers.origin || '';
+    
+    if (CAPACITOR_ORIGINS.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Vary', 'Origin');
+    }
+    
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(204);
+      return;
+    }
+    
     next();
   });
   
