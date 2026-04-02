@@ -7,12 +7,10 @@ const config: CapacitorConfig = {
   appId: 'br.com.tritecnologias.veiculosmanager',
   appName: 'VeiculosManager',
   webDir: 'dist/public',
-  server: serverUrl
-    ? {
-        url: serverUrl,
-        cleartext: false,
-      }
-    : undefined,
+  server: {
+    url: 'https://app.cotazerokm.com.br',
+    cleartext: false,
+  },
   android: {
     allowMixedContent: false,
     captureInput: true,

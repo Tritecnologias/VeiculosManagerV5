@@ -10,6 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Save, Download, Upload, Trash2, Database, CheckCircle, AlertTriangle, FileArchive, Calendar, User, HardDrive } from "lucide-react";
+import { useMobile } from "@/hooks/use-mobile";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Setting = {
   id: number;
@@ -25,6 +27,8 @@ export default function Settings() {
   const { toast } = useToast();
   const [saving, setSaving] = React.useState(false);
   const [formData, setFormData] = React.useState<Record<string, string | boolean>>({});
+  const [activeTab, setActiveTab] = React.useState("general");
+  const isMobile = useMobile();
   
   // Estados para backup
   const [backupName, setBackupName] = React.useState('');
@@ -273,9 +277,9 @@ export default function Settings() {
   
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">Configurações do Sistema</h1>
-        <Button onClick={handleSave} disabled={saving}>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Configurações</h1>
+        <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
           {saving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -284,23 +288,42 @@ export default function Settings() {
           ) : (
             <>
               <Save className="mr-2 h-4 w-4" />
-              Salvar Configurações
+              Salvar
             </>
           )}
         </Button>
       </div>
       
-      <Tabs defaultValue="general">
-        <TabsList>
-          <TabsTrigger value="general">Geral</TabsTrigger>
-          <TabsTrigger value="direct-sales">Vendas Diretas</TabsTrigger>
-          <TabsTrigger value="company">Empresa</TabsTrigger>
-          <TabsTrigger value="app">Aplicação</TabsTrigger>
-          <TabsTrigger value="theme">Cores do Tema</TabsTrigger>
-          <TabsTrigger value="backup">Backup</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="general" className="space-y-4">
+      {isMobile ? (
+        <>
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="general">Geral</SelectItem>
+              <SelectItem value="direct-sales">Vendas Diretas</SelectItem>
+              <SelectItem value="company">Empresa</SelectItem>
+              <SelectItem value="app">Aplicação</SelectItem>
+              <SelectItem value="theme">Cores do Tema</SelectItem>
+              <SelectItem value="backup">Backup</SelectItem>
+            </SelectContent>
+          </Select>
+        </>
+      ) : (
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="general">Geral</TabsTrigger>
+            <TabsTrigger value="direct-sales">Vendas Diretas</TabsTrigger>
+            <TabsTrigger value="company">Empresa</TabsTrigger>
+            <TabsTrigger value="app">Aplicação</TabsTrigger>
+            <TabsTrigger value="theme">Cores do Tema</TabsTrigger>
+            <TabsTrigger value="backup">Backup</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
+
+      {activeTab === "general" && (
           <Card>
             <CardHeader>
               <CardTitle>Informações Gerais</CardTitle>
@@ -323,13 +346,13 @@ export default function Settings() {
               ))}
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
         
-        <TabsContent value="direct-sales" className="space-y-4">
+        {activeTab === "direct-sales" && (
           <DirectSaleList />
-        </TabsContent>
+        )}
         
-        <TabsContent value="company" className="space-y-4">
+        {activeTab === "company" && (
           <Card>
             <CardHeader>
               <CardTitle>Informações da Empresa</CardTitle>
@@ -365,9 +388,9 @@ export default function Settings() {
 
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
-        <TabsContent value="app" className="space-y-4">
+        {activeTab === "app" && (
           <Card>
             <CardHeader>
               <CardTitle>Configurações da Aplicação</CardTitle>
@@ -421,9 +444,9 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
-        <TabsContent value="theme" className="space-y-4">
+        {activeTab === "theme" && (
           <Card>
             <CardHeader>
               <CardTitle>Personalização de Cores</CardTitle>
@@ -489,9 +512,10 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
         
-        <TabsContent value="backup" className="space-y-4">
+        {activeTab === "backup" && (
+          <>
           {/* Seção de Criar Backup */}
           <Card>
             <CardHeader>
@@ -709,8 +733,8 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+          </>
+        )}
     </div>
   );
 }

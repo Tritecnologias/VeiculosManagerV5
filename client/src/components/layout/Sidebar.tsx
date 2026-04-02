@@ -202,8 +202,9 @@ export default function Sidebar() {
   return (
       <ul className="space-y-1">
         {filteredMenuItems.map((item, index) => {
-          const isActive = location.startsWith(item.path) || 
-                (item.path !== '/' && location === item.path);
+          const isActive = item.path === '/' 
+                ? location === '/' 
+                : location.startsWith(item.path);
           
           return (
             <li key={`menu-${index}-${item.path}`}>
@@ -234,9 +235,9 @@ export default function Sidebar() {
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={(val) => !val && closeSidebar()}>
-        <SheetContent side="left" className="p-0 w-64">
-          <div className="p-4">
-            <div className="flex justify-between items-center mb-4">
+        <SheetContent side="left" className="p-0 w-64 flex flex-col h-full">
+          <div className="p-4 flex flex-col h-full overflow-hidden">
+            <div className="flex justify-between items-center mb-4 flex-shrink-0">
               <h2 className="text-lg font-semibold text-gray-800">Administração</h2>
               <button onClick={closeSidebar} className="p-1">
                 <X className="h-5 w-5" />
@@ -244,9 +245,9 @@ export default function Sidebar() {
             </div>
             
             {/* Perfil do usuário */}
-            {user && <UserProfile />}
+            {user && <div className="flex-shrink-0"><UserProfile /></div>}
             
-            <nav>
+            <nav className="flex-1 overflow-y-auto pb-8">
               <MenuItems />
             </nav>
           </div>

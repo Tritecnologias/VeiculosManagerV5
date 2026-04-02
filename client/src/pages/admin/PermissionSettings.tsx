@@ -4,23 +4,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, Info, Shield, CheckCircle, XCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ROUTE_PERMISSIONS, getCustomPermissions, UserRole } from "@/lib/permissions";
+import { ROUTE_PERMISSIONS, UserRole } from "@/lib/permissions";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useMobile } from "@/hooks/use-mobile";
 
 export default function PermissionSettings() {
   const { toast } = useToast();
+  const isMobile = useMobile();
   const [selectedRole, setSelectedRole] = useState<string>("Cadastrador");
+  const [selectedCategory, setSelectedCategory] = useState<string>("Visualização");
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [permissions, setPermissions] = useState<Record<string, boolean>>({});
 
-  // Buscar as permissões personalizadas
   const { data: customPermissions, isLoading } = useQuery({
     queryKey: ['/api/permissions'],
     queryFn: async () => {
@@ -32,93 +33,55 @@ export default function PermissionSettings() {
         return {};
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Agrupar permissões por categoria para melhor organização
   const categories = {
     "Visualização": ROUTE_PERMISSIONS.filter(p => 
-      !p.path.includes('new') && 
-      !p.path.includes('edit') && 
-      !p.path.includes('admin') &&
-      p.path !== "/" && 
-      p.path !== "/configurator" && 
-      p.path !== "/settings" && 
-      p.path !== "/user/profile"
+      !p.path.includes('new') && !p.path.includes('edit') && !p.path.includes('admin') &&
+      p.path !== "/" && p.path !== "/configurator" && p.path !== "/settings" && p.path !== "/user/profile"
     ),
-    "Dashboard e Configurador": ROUTE_PERMISSIONS.filter(p => 
-      p.path === "/" || 
-      p.path === "/configurator"
-    ),
-    "Cadastro e Edição": ROUTE_PERMISSIONS.filter(p => 
-      p.path.includes('new') || 
-      p.path.includes('edit')
-    ),
-    "Perfil de Usuário": ROUTE_PERMISSIONS.filter(p => 
-      p.path === "/user/profile"
-    ),
-    "Gerencial": ROUTE_PERMISSIONS.filter(p => 
-      p.path.includes('admin') || 
-      p.path === "/settings"
-    )
+    "Dashboard e Configurador": ROUTE_PERMISSIONS.filter(p => p.path === "/" || p.path === "/configurator"),
+    "Cadastro e Edição": ROUTE_PERMISSIONS.filter(p => p.path.includes('new') || p.path.includes('edit')),
+    "Perfil de Usuário": ROUTE_PERMISSIONS.filter(p => p.path === "/user/profile"),
+    "Gerencial": ROUTE_PERMISSIONS.filter(p => p.path.includes('admin') || p.path === "/settings")
   };
 
-  // Mutação para salvar permissões personalizadas
   const saveMutation = useMutation({
     mutationFn: async ({ role, permissions }: { role: string, permissions: Record<string, boolean> }) => {
       const response = await apiRequest('POST', '/api/permissions', { role, permissions });
       return await response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Permissões atualizadas",
-        description: "As permissões foram atualizadas com sucesso.",
-        variant: "default",
-      });
+      toast({ title: "Permissões atualizadas", description: "As permissões foram atualizadas com sucesso." });
       queryClient.invalidateQueries({queryKey: ['/api/permissions']});
       setIsEditing(false);
     },
     onError: (error: Error) => {
-      toast({
-        title: "Erro ao atualizar permissões",
-        description: error.message || "Ocorreu um erro ao atualizar as permissões.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro ao atualizar permissões", description: error.message, variant: "destructive" });
     }
   });
 
-  // Mutação para resetar permissões para o padrão
   const resetMutation = useMutation({
     mutationFn: async (role: string) => {
       const response = await apiRequest('DELETE', `/api/permissions/${role}`);
       return await response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Permissões resetadas",
-        description: "As permissões foram resetadas para os valores padrão.",
-        variant: "default",
-      });
+      toast({ title: "Permissões resetadas", description: "As permissões foram resetadas para os valores padrão." });
       queryClient.invalidateQueries({queryKey: ['/api/permissions']});
       setIsEditing(false);
     },
     onError: (error: Error) => {
-      toast({
-        title: "Erro ao resetar permissões",
-        description: error.message || "Ocorreu um erro ao resetar as permissões.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro ao resetar permissões", description: error.message, variant: "destructive" });
     }
   });
 
-  // Carrega as permissões corretas quando a role selecionada muda ou quando as permissões são atualizadas
   useEffect(() => {
     if (customPermissions && selectedRole) {
-      // Se existem permissões personalizadas para a role, use-as
       if (customPermissions[selectedRole]) {
         setPermissions(customPermissions[selectedRole]);
       } else {
-        // Caso contrário, use as permissões padrão
         const defaultPermissions: Record<string, boolean> = {};
         ROUTE_PERMISSIONS.forEach(permission => {
           defaultPermissions[permission.description] = permission.allowedRoles.includes(selectedRole as UserRole);
@@ -133,20 +96,18 @@ export default function PermissionSettings() {
     setPermissions(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = () => {
-    saveMutation.mutate({ role: selectedRole, permissions });
-  };
+  const handleSave = () => saveMutation.mutate({ role: selectedRole, permissions });
 
   const handleReset = () => {
-    if (window.confirm(`Tem certeza que deseja restaurar as permissões padrão para ${selectedRole}?`)) {
+    if (window.confirm(`Restaurar permissões padrão para ${selectedRole}?`)) {
       resetMutation.mutate(selectedRole);
     }
   };
 
   const handleSelectAll = (category: string, value: boolean) => {
     const newPermissions = { ...permissions };
-    categories[category as keyof typeof categories].forEach(permission => {
-      newPermissions[permission.description] = value;
+    categories[category as keyof typeof categories].forEach(p => {
+      newPermissions[p.description] = value;
     });
     setPermissions(newPermissions);
     setIsEditing(true);
@@ -161,187 +122,131 @@ export default function PermissionSettings() {
     );
   }
 
+  const categoryOptions = Object.keys(categories);
+  const currentPermissions = categories[selectedCategory as keyof typeof categories] || [];
+
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">Configurações de Permissões</h1>
+    <div className="space-y-4">
+      <h1 className="text-xl sm:text-2xl font-bold">Configurações de Permissões</h1>
       
-      <Alert className="mb-6">
-        <Info className="h-5 w-5" />
-        <AlertTitle>Personalize as permissões por papel</AlertTitle>
-        <AlertDescription>
-          Configure quais funcionalidades cada papel de usuário pode acessar no sistema.
-          O papel de Administrador sempre terá acesso total e não pode ser modificado.
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertTitle className="text-sm">Personalize as permissões por papel</AlertTitle>
+        <AlertDescription className="text-xs">
+          O papel de Administrador sempre terá acesso total.
         </AlertDescription>
       </Alert>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Papel de Usuário</CardTitle>
-              <CardDescription>Selecione o papel que deseja configurar</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs 
-                defaultValue="Cadastrador" 
-                value={selectedRole} 
-                onValueChange={setSelectedRole}
-                className="w-full"
-              >
-                <TabsList className="grid grid-cols-2 mb-4">
-                  <TabsTrigger value="Cadastrador">Cadastrador</TabsTrigger>
-                  <TabsTrigger value="Usuário">Usuário</TabsTrigger>
-                </TabsList>
+      {/* Papel + Ações */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Papel de Usuário</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <Button
+              variant={selectedRole === "Cadastrador" ? "default" : "outline"}
+              onClick={() => setSelectedRole("Cadastrador")}
+              className="flex-1"
+              size="sm"
+            >
+              Cadastrador
+            </Button>
+            <Button
+              variant={selectedRole === "Usuário" ? "default" : "outline"}
+              onClick={() => setSelectedRole("Usuário")}
+              className="flex-1"
+              size="sm"
+            >
+              Usuário
+            </Button>
+          </div>
 
-                <div className="flex justify-between mt-6">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={handleReset}
-                          disabled={resetMutation.isPending}
-                        >
-                          {resetMutation.isPending ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Resetando...
-                            </>
-                          ) : (
-                            <>
-                              <RotateCcw className="mr-2 h-4 w-4" />
-                              Restaurar Padrão
-                            </>
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Restaurar as permissões padrão para este papel</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+          <div className="flex items-center gap-2">
+            <Badge variant={customPermissions && customPermissions[selectedRole] ? "default" : "outline"} className="text-xs">
+              {customPermissions && customPermissions[selectedRole] ? "Personalizado" : "Padrão"}
+            </Badge>
+            {isEditing && (
+              <Badge variant="secondary" className="text-xs">Alterações não salvas</Badge>
+            )}
+          </div>
 
-                  <Button 
-                    variant="default" 
-                    size="sm"
-                    onClick={handleSave}
-                    disabled={!isEditing || saveMutation.isPending}
-                  >
-                    {saveMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Salvando...
-                      </>
-                    ) : (
-                      <>
-                        <Shield className="mr-2 h-4 w-4" />
-                        Salvar Permissões
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </Tabs>
-            </CardContent>
-          </Card>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleReset} disabled={resetMutation.isPending} className="flex-1">
+              <RotateCcw className="mr-1 h-3 w-3" />
+              {resetMutation.isPending ? "Resetando..." : "Restaurar"}
+            </Button>
+            <Button size="sm" onClick={handleSave} disabled={!isEditing || saveMutation.isPending} className="flex-1">
+              <Shield className="mr-1 h-3 w-3" />
+              {saveMutation.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Status das Permissões</CardTitle>
-              <CardDescription>Informações sobre as permissões atuais</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Badge variant={customPermissions && customPermissions[selectedRole] ? "default" : "outline"}>
-                    {customPermissions && customPermissions[selectedRole] ? "Personalizado" : "Padrão"}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">
-                    {customPermissions && customPermissions[selectedRole] 
-                      ? "Este papel tem permissões personalizadas" 
-                      : "Este papel usa as permissões padrão do sistema"}
-                  </span>
-                </div>
-
-                {isEditing && (
-                  <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertTitle className="text-sm">Alterações não salvas</AlertTitle>
-                    <AlertDescription className="text-xs">
-                      Clique em "Salvar Permissões" para aplicar as mudanças
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="md:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Permissões por Categoria</CardTitle>
-              <CardDescription>Ative ou desative funcionalidades específicas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="Visualização" className="w-full">
-                <TabsList className="grid grid-cols-5 mb-6">
-                  <TabsTrigger value="Visualização">Visualização</TabsTrigger>
-                  <TabsTrigger value="Cadastro e Edição">Cadastro</TabsTrigger>
-                  <TabsTrigger value="Dashboard e Configurador">Dashboard</TabsTrigger>
-                  <TabsTrigger value="Perfil de Usuário">Perfil</TabsTrigger>
-                  <TabsTrigger value="Gerencial">Gerencial</TabsTrigger>
-                </TabsList>
-
-                {Object.entries(categories).map(([category, categoryPermissions]) => (
-                  <TabsContent key={category} value={category} className="p-0">
-                    <div className="flex justify-between mb-4">
-                      <h3 className="text-lg font-medium">Permissões de {category}</h3>
-                      <div className="flex items-center space-x-4">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleSelectAll(category, true)}
-                        >
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Selecionar Todos
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleSelectAll(category, false)}
-                        >
-                          <XCircle className="mr-2 h-4 w-4" />
-                          Desmarcar Todos
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {categoryPermissions.map((permission) => (
-                        <div key={permission.path} className="flex items-center justify-between p-3 border rounded-md">
-                          <div className="space-y-1">
-                            <Label htmlFor={`permission-${permission.path}`}>
-                              {permission.description}
-                            </Label>
-                            <p className="text-sm text-muted-foreground">{permission.path}</p>
-                          </div>
-                          <Switch
-                            id={`permission-${permission.path}`}
-                            checked={permissions[permission.description] || false}
-                            onCheckedChange={(value) => handlePermissionChange(permission.description, value)}
-                            className="data-[state=checked]:bg-primary"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
+      {/* Permissões por Categoria */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Permissões</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Seletor de categoria */}
+          {isMobile ? (
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {categoryOptions.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                 ))}
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              </SelectContent>
+            </Select>
+          ) : (
+            <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+              <TabsList className="grid grid-cols-5">
+                {categoryOptions.map(cat => (
+                  <TabsTrigger key={cat} value={cat} className="text-xs">{cat}</TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          )}
+
+          {/* Ações em lote */}
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => handleSelectAll(selectedCategory, true)} className="flex-1 text-xs">
+              <CheckCircle className="mr-1 h-3 w-3" />
+              Marcar todos
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleSelectAll(selectedCategory, false)} className="flex-1 text-xs">
+              <XCircle className="mr-1 h-3 w-3" />
+              Desmarcar todos
+            </Button>
+          </div>
+
+          {/* Lista de permissões */}
+          <div className="space-y-2">
+            {currentPermissions.map((permission) => (
+              <div key={permission.path} className="flex items-center justify-between p-3 border rounded-md">
+                <div className="flex-1 min-w-0 mr-3">
+                  <Label htmlFor={`perm-${permission.path}`} className="text-sm leading-tight">
+                    {permission.description}
+                  </Label>
+                  <p className="text-xs text-muted-foreground truncate">{permission.path}</p>
+                </div>
+                <Switch
+                  id={`perm-${permission.path}`}
+                  checked={permissions[permission.description] || false}
+                  onCheckedChange={(value) => handlePermissionChange(permission.description, value)}
+                />
+              </div>
+            ))}
+            {currentPermissions.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhuma permissão nesta categoria</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

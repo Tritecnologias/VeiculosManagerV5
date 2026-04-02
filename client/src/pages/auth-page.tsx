@@ -77,7 +77,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex min-h-screen flex-col md:flex-row" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       {/* Lado esquerdo - Formulário */}
       <div className="flex-1 flex items-center justify-center p-4 md:p-10">
         <div className="w-full max-w-md">

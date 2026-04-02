@@ -99,13 +99,13 @@ export default function DirectSaleList() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex-1">
           <CardTitle>Vendas Diretas</CardTitle>
           <CardDescription>Gerenciamento de descontos para vendas diretas</CardDescription>
         </div>
-        <Link href="/direct-sales/new">
-          <Button className="flex items-center">
+        <Link href="/direct-sales/new" className="w-full sm:w-auto">
+          <Button className="flex items-center w-full sm:w-auto">
             <PlusCircle className="mr-2 h-4 w-4" />
             Nova Venda Direta
           </Button>

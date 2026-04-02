@@ -88,7 +88,7 @@ export default function Header() {
   };
   
   return (
-    <header className="bg-white shadow">
+    <header className="bg-white shadow" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="flex justify-between items-center px-4 py-2">
         <div className="flex items-center gap-2">
           {/* Botão hambúrguer para mobile (apenas para não-usuários regulares) */}

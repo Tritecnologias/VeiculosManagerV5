@@ -37,13 +37,13 @@ export default function ColorList({ onEdit }: ColorListProps) {
   
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Cores/Pinturas</h1>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+        <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">Cores/Pinturas</h1>
       </div>
       
       <Card>
-        <CardHeader>
-          <CardTitle>Lista de Cores</CardTitle>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-lg sm:text-xl">Lista de Cores</CardTitle>
           <CardDescription>
             Gerencie as cores e pinturas disponíveis para os veículos
           </CardDescription>
@@ -60,7 +60,7 @@ export default function ColorList({ onEdit }: ColorListProps) {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-2 sm:px-6">
           {isLoading ? (
             <div className="flex justify-center items-center h-32">
               <p>Carregando...</p>
@@ -74,20 +74,20 @@ export default function ColorList({ onEdit }: ColorListProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  <TableHead className="hidden sm:table-cell">ID</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>Tipo de Pintura</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredColors.map((color) => (
                   <TableRow key={color.id}>
-                    <TableCell>{color.id}</TableCell>
-                    <TableCell>{color.name}</TableCell>
-                    <TableCell>{color.paintType?.name || "Não definido"}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
+                    <TableCell className="hidden sm:table-cell">{color.id}</TableCell>
+                    <TableCell className="font-medium">{color.name}</TableCell>
+                    <TableCell className="text-sm">{color.paintType?.name || "Não definido"}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex gap-1 justify-end">
                         {onEdit ? (
                           <Button variant="outline" size="sm" onClick={() => onEdit(color.id)}>
                             <Pencil className="h-4 w-4" />

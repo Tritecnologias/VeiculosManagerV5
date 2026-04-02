@@ -317,9 +317,12 @@ export function setupAuth(app: Express) {
   app.use((req, res, next) => {
     const origin = req.headers.origin || '';
     
-    if (CAPACITOR_ORIGINS.includes(origin)) {
+    // Aceitar qualquer origem (desenvolvimento local e rede local)
+    if (origin) {
       res.header('Access-Control-Allow-Origin', origin);
       res.header('Vary', 'Origin');
+    } else {
+      res.header('Access-Control-Allow-Origin', '*');
     }
     
     res.header('Access-Control-Allow-Credentials', 'true');

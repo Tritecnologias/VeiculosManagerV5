@@ -132,7 +132,7 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="bg-white shadow sticky top-0 z-50">
+      <header className="bg-white shadow sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
             {companyLogoUrl ? (
