@@ -48,7 +48,7 @@ generated-icon.png
 
 # Futuro - Capacitor (Android e iOS)
 android/
-ios/
+#ios/
 
 # Arquivos de lock do git
 *.lock

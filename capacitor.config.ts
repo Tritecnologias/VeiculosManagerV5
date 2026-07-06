@@ -4,7 +4,7 @@ const serverUrl = process.env.CAPACITOR_SERVER_URL;
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const config: CapacitorConfig = {
-  appId: 'br.com.tritecnologias.veiculosmanager',
+  appId: 'br.com.cotazerokm.app',
   appName: 'VeiculosManager',
   webDir: 'dist/public',
   server: {
