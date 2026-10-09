@@ -12,9 +12,15 @@ workflows:
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
-      node: 20
+      node: 22
       xcode: latest
     scripts:
+      - name: Force Node 22
+        script: |
+          nvm install 22
+          nvm use 22
+          echo "export PATH=$(dirname $(nvm which 22)):$PATH" >> $CM_ENV
+          node -v
       - name: Install dependencies
         script: |
           npm ci
