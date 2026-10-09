@@ -9,11 +9,11 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: br.com.cotazerokm.app
+      node: 22
+      xcode: latest
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
-      node: 22
-      xcode: latest
     scripts:
       - name: Force Node 22
         script: |
@@ -32,15 +32,28 @@ workflows:
           npx cap sync ios
       - name: Install CocoaPods
         script: |
-          cd ios/App && pod install || true
+          cd ios/App
+          pod install --repo-update
       - name: Set up code signing
         script: |
           xcode-project use-profiles
       - name: Build iOS app
         script: |
-          xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
-            --scheme "$XCODE_SCHEME"
+          if [ -d "ios/App/App.xcworkspace" ]; then
+            echo "Compilando usando Workspace..."
+            xcode-project build-ipa \
+              --workspace "ios/App/App.xcworkspace" \
+              --scheme "$XCODE_SCHEME"
+          elif [ -d "ios/App/App.xcodeproj" ]; then
+            echo "Compilando usando Project..."
+            xcode-project build-ipa \
+              --project "ios/App/App.xcodeproj" \
+              --scheme "$XCODE_SCHEME"
+          else
+            echo "Estrutura iOS não encontrada em ios/App:"
+            ls -la ios/App
+            exit 1
+          fi
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
