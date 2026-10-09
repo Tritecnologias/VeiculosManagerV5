@@ -12,7 +12,6 @@ workflows:
       node: 22
       xcode: latest
       vars:
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
     scripts:
       - name: Force Node 22
@@ -29,44 +28,41 @@ workflows:
           npm run build
       - name: Prepare and Sync Capacitor iOS
         script: |
-          # Se a pasta ios nao existir no repositorio, adiciona a plataforma
           if [ ! -d "ios" ]; then
             echo "Pasta ios nao encontrada. A inicializar plataforma iOS..."
             npx cap add ios
           fi
           npx cap sync ios
-      - name: Install CocoaPods
+      - name: Install CocoaPods (se aplicavel)
         script: |
-          # Procura a pasta que contem o Podfile
           PODFILE_DIR=$(find . -name "Podfile" -not -path "*/Pods/*" -exec dirname {} \; | head -n 1)
           if [ -n "$PODFILE_DIR" ]; then
-            echo "Podfile encontrado em: $PODFILE_DIR"
+            echo "Podfile encontrado em: $PODFILE_DIR. A executar pod install..."
             cd "$PODFILE_DIR"
             pod install --repo-update
           else
-            echo "Nenhum Podfile encontrado no projeto."
-            ls -la
-            exit 1
+            echo "Nenhum Podfile encontrado. O projeto utiliza Swift Package Manager (SPM) ou estrutura direta do Xcode. A avancar sem CocoaPods..."
           fi
       - name: Set up code signing
         script: |
           xcode-project use-profiles
       - name: Build iOS app
         script: |
-          WORKSPACE_PATH=$(find ios -name "*.xcworkspace" 2>/dev/null | head -n 1)
+          # Procura primeiro por workspace externo; caso nao exista, utiliza o .xcodeproj
+          WORKSPACE_PATH=$(find ios -name "*.xcworkspace" -not -path "*.xcodeproj/*" 2>/dev/null | head -n 1)
           PROJECT_PATH=$(find ios -name "*.xcodeproj" 2>/dev/null | head -n 1)
-          if [ -n "$WORKSPACE_PATH" ]; then
-            echo "A compilar via Workspace: $WORKSPACE_PATH"
+          if [ -n "$WORKSPACE_PATH" ] && [ -d "$WORKSPACE_PATH" ]; then
+            echo "A compilar através do Workspace: $WORKSPACE_PATH"
             xcode-project build-ipa \
               --workspace "$WORKSPACE_PATH" \
               --scheme "$XCODE_SCHEME"
-          elif [ -n "$PROJECT_PATH" ]; then
-            echo "A compilar via Project: $PROJECT_PATH"
+          elif [ -n "$PROJECT_PATH" ] && [ -d "$PROJECT_PATH" ]; then
+            echo "A compilar através do Projeto Xcode: $PROJECT_PATH"
             xcode-project build-ipa \
               --project "$PROJECT_PATH" \
               --scheme "$XCODE_SCHEME"
           else
-            echo "Nenhum projeto Xcode encontrado em ios/:"
+            echo "Erro: Nenhum projeto (.xcodeproj) ou workspace (.xcworkspace) encontrado na pasta ios:"
             find ios -maxdepth 3
             exit 1
           fi
