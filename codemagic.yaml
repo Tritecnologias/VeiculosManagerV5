@@ -33,6 +33,14 @@ workflows:
             npx cap add ios
           fi
           npx cap sync ios
+      - name: Set build number
+        script: |
+          # Atualiza o numero de compilacao para corresponder ao build do Codemagic
+          cd ios/App
+          PLIST="App/Info.plist"
+          if [ -f "$PLIST" ]; then
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$PLIST" || true
+          fi
       - name: Install CocoaPods (se aplicavel)
         script: |
           PODFILE_DIR=$(find . -name "Podfile" -not -path "*/Pods/*" -exec dirname {} \; | head -n 1)
@@ -41,14 +49,13 @@ workflows:
             cd "$PODFILE_DIR"
             pod install --repo-update
           else
-            echo "Nenhum Podfile encontrado. O projeto utiliza Swift Package Manager (SPM) ou estrutura direta do Xcode. A avancar sem CocoaPods..."
+            echo "Nenhum Podfile encontrado. A avancar sem CocoaPods..."
           fi
       - name: Set up code signing
         script: |
           xcode-project use-profiles
       - name: Build iOS app
         script: |
-          # Procura primeiro por workspace externo; caso nao exista, utiliza o .xcodeproj
           WORKSPACE_PATH=$(find ios -name "*.xcworkspace" -not -path "*.xcodeproj/*" 2>/dev/null | head -n 1)
           PROJECT_PATH=$(find ios -name "*.xcodeproj" 2>/dev/null | head -n 1)
           if [ -n "$WORKSPACE_PATH" ] && [ -d "$WORKSPACE_PATH" ]; then
@@ -62,10 +69,13 @@ workflows:
               --project "$PROJECT_PATH" \
               --scheme "$XCODE_SCHEME"
           else
-            echo "Erro: Nenhum projeto (.xcodeproj) ou workspace (.xcworkspace) encontrado na pasta ios:"
-            find ios -maxdepth 3
+            echo "Erro: Nenhum projeto (.xcodeproj) ou workspace (.xcworkspace) encontrado."
             exit 1
           fi
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
