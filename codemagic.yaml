@@ -27,31 +27,47 @@ workflows:
       - name: Build web assets
         script: |
           npm run build
-      - name: Sync Capacitor iOS
+      - name: Prepare and Sync Capacitor iOS
         script: |
+          # Se a pasta ios nao existir no repositorio, adiciona a plataforma
+          if [ ! -d "ios" ]; then
+            echo "Pasta ios nao encontrada. A inicializar plataforma iOS..."
+            npx cap add ios
+          fi
           npx cap sync ios
       - name: Install CocoaPods
         script: |
-          cd ios/App
-          pod install --repo-update
+          # Procura a pasta que contem o Podfile
+          PODFILE_DIR=$(find . -name "Podfile" -not -path "*/Pods/*" -exec dirname {} \; | head -n 1)
+          if [ -n "$PODFILE_DIR" ]; then
+            echo "Podfile encontrado em: $PODFILE_DIR"
+            cd "$PODFILE_DIR"
+            pod install --repo-update
+          else
+            echo "Nenhum Podfile encontrado no projeto."
+            ls -la
+            exit 1
+          fi
       - name: Set up code signing
         script: |
           xcode-project use-profiles
       - name: Build iOS app
         script: |
-          if [ -d "ios/App/App.xcworkspace" ]; then
-            echo "Compilando usando Workspace..."
+          WORKSPACE_PATH=$(find ios -name "*.xcworkspace" 2>/dev/null | head -n 1)
+          PROJECT_PATH=$(find ios -name "*.xcodeproj" 2>/dev/null | head -n 1)
+          if [ -n "$WORKSPACE_PATH" ]; then
+            echo "A compilar via Workspace: $WORKSPACE_PATH"
             xcode-project build-ipa \
-              --workspace "ios/App/App.xcworkspace" \
+              --workspace "$WORKSPACE_PATH" \
               --scheme "$XCODE_SCHEME"
-          elif [ -d "ios/App/App.xcodeproj" ]; then
-            echo "Compilando usando Project..."
+          elif [ -n "$PROJECT_PATH" ]; then
+            echo "A compilar via Project: $PROJECT_PATH"
             xcode-project build-ipa \
-              --project "ios/App/App.xcodeproj" \
+              --project "$PROJECT_PATH" \
               --scheme "$XCODE_SCHEME"
           else
-            echo "Estrutura iOS não encontrada em ios/App:"
-            ls -la ios/App
+            echo "Nenhum projeto Xcode encontrado em ios/:"
+            find ios -maxdepth 3
             exit 1
           fi
     artifacts:
