@@ -4,7 +4,7 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     integrations:
-      app_store_connect: "CotaZero KM - Codemagic"
+      app_store_connect: "Codemagic TestFlight"
     environment:
       ios_signing:
         distribution_type: app_store
@@ -29,13 +29,13 @@ workflows:
       - name: Prepare and Sync Capacitor iOS
         script: |
           if [ ! -d "ios" ]; then
-            echo "Pasta ios nao encontrada. A inicializar plataforma iOS..."
+            echo "Pasta ios não encontrada. A inicializar plataforma iOS..."
             npx cap add ios
           fi
           npx cap sync ios
       - name: Set build number
         script: |
-          # Atualiza o numero de compilacao para corresponder ao build do Codemagic
+          # Incrementa o número de compilação automaticamente para evitar rejeição no TestFlight
           cd ios/App
           PLIST="App/Info.plist"
           if [ -f "$PLIST" ]; then
@@ -49,7 +49,7 @@ workflows:
             cd "$PODFILE_DIR"
             pod install --repo-update
           else
-            echo "Nenhum Podfile encontrado. A avancar sem CocoaPods..."
+            echo "Nenhum Podfile encontrado (projeto utiliza SPM). A avançar sem CocoaPods..."
           fi
       - name: Set up code signing
         script: |
