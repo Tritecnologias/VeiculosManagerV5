@@ -5,7 +5,7 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const config: CapacitorConfig = {
   appId: 'br.com.cotazerokm.app',
-  appName: 'VeiculosManager',
+  appName: 'CotaZero KM',
   webDir: 'dist/public',
   server: {
     url: 'https://app.cotazerokm.com.br',
